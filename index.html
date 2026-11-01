@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Merri-bek Bin Night</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass+Mono:wght@400;600&family=Overpass:wght@400;600;800&display=swap">
+<style>
+/* Layout: one kerbside column. The next bin night with its line-up of bins on the kerb, an eight-week timetable, then your bin weeks folded away at the end. */
+:root {
+  --bg: #ECEFEA;
+  --surface: #F8FAF6;
+  --ink: #16201A;
+  --muted: #536058;
+  --line: #D0D7CF;
+  --edge: #7F8B83;
+  --kerb: #C3CBC2;
+  --note: #E2E8DF;
+  --bin-body: #24332B;
+  --wheel: #0E1511;
+  --swatch-edge: rgba(22, 32, 26, 0.32);
+  --lid-rubbish: #C62F37;
+  --lid-recycling: #F2C119;
+  --lid-fogo: #7FBF3C;
+  --lid-glass: #7442A0;
+  --font-display: "Overpass", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Overpass", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-data: "Overpass Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1411; --surface: #161E1A; --ink: #E5EBE6; --muted: #98A49D; --line: #2A342E;
+    --edge: #66736B; --kerb: #36413B; --note: #1C2520; --bin-body: #3B4C43; --wheel: #56645C;
+    --swatch-edge: rgba(255, 255, 255, 0.22);
+    --lid-rubbish: #E0474F; --lid-recycling: #F5CC3A; --lid-fogo: #93D152; --lid-glass: #A57AD0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1411; --surface: #161E1A; --ink: #E5EBE6; --muted: #98A49D; --line: #2A342E;
+  --edge: #66736B; --kerb: #36413B; --note: #1C2520; --bin-body: #3B4C43; --wheel: #56645C;
+  --swatch-edge: rgba(255, 255, 255, 0.22);
+  --lid-rubbish: #E0474F; --lid-recycling: #F5CC3A; --lid-fogo: #93D152; --lid-glass: #A57AD0;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--bg); padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+a { color: var(--ink); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+
+.wrap {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+  display: grid;
+  gap: 28px;
+}
+
+/* Masthead */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { margin: 0; display: flex; align-items: center; gap: 10px; font: 800 19px/1 var(--font-display); }
+.mark { display: inline-grid; grid-template-columns: repeat(4, 7px); gap: 3px; align-items: end; }
+.mark i { display: block; height: 15px; border-radius: 2px; background: var(--lid); box-shadow: inset 0 0 0 1px var(--swatch-edge); }
+.council { margin: 0; font: 600 12px/1 var(--font-data); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+/* Next bin night */
+.next { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 22px 18px 20px; }
+.eyebrow { margin: 0; font: 600 12px/1.2 var(--font-data); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 10px 0 0; font: 800 clamp(2.5rem, 12vw, 3.4rem)/1 var(--font-display); letter-spacing: -0.015em; text-wrap: balance; }
+.next-date { margin: 12px 0 0; font: 600 18px/1.3 var(--font-body); }
+.next-by { margin: 2px 0 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
+
+.lineup { margin-top: 22px; }
+.bins, .labels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.kerb { height: 10px; margin-top: 1px; border-radius: 3px; background: var(--kerb); }
+.labels { margin-top: 12px; }
+.slot { display: grid; justify-items: center; align-content: start; gap: 6px; text-align: center; min-width: 0; }
+.slot-name { display: block; min-height: 2.4em; font: 600 14px/1.2 var(--font-body); }
+.slot-state { font: 600 13px/1 var(--font-body); padding: 5px 8px 4px; border-radius: 999px; border: 1.5px solid transparent; color: var(--muted); white-space: nowrap; }
+.slot--out .slot-state { background: var(--ink); color: var(--surface); }
+.slot--unknown .slot-state { border-color: var(--edge); border-style: dashed; }
+
+.bin { display: block; width: 100%; max-width: 88px; margin-inline: auto; overflow: visible; }
+.bin .handle, .bin .body { fill: var(--bin-body); }
+.bin .lid { fill: var(--lid); }
+.bin .panel { fill: rgba(255, 255, 255, 0.07); }
+.bin .wheel { fill: var(--wheel); }
+.bin--in .handle, .bin--in .body, .bin--in .wheel,
+.bin--unknown .handle, .bin--unknown .body, .bin--unknown .wheel { fill: none; stroke: var(--edge); stroke-width: 2; }
+.bin--in .body, .bin--unknown .body { stroke-dasharray: 5 4; }
+.bin--in .panel, .bin--unknown .panel { fill: none; }
+.bin--in .lid, .bin--unknown .lid { fill: var(--lid); fill-opacity: 0.3; stroke: var(--lid); stroke-width: 2; }
+.bin .mystery { fill: var(--muted); font: 800 30px var(--font-display); }
+.bin--out { animation: settle 520ms cubic-bezier(0.2, 0.9, 0.25, 1) both; animation-delay: calc(var(--i) * 70ms); }
+@keyframes settle { from { transform: translateY(-10px); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .bin--out { animation: none; } }
+
+.verdict { margin: 18px 0 0; font: 600 17px/1.4 var(--font-body); text-wrap: pretty; }
+.notes { display: grid; gap: 8px; margin-top: 14px; }
+.notes:empty { display: none; }
+.note { margin: 0; background: var(--note); border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.4; }
+
+/* Timetable */
+h2, .sum-title { margin: 0; font: 800 20px/1.2 var(--font-display); text-wrap: balance; }
+.ahead h2 { margin-bottom: 10px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+th, td { padding: 11px 4px; border-bottom: 1px solid var(--line); text-align: center; vertical-align: middle; }
+thead th { padding-top: 0; font: 600 12px/1.2 var(--font-body); color: var(--muted); vertical-align: bottom; }
+thead th:first-child { text-align: left; padding-left: 10px; }
+.lidmark { display: block; width: 26px; height: 8px; margin: 0 auto 6px; border-radius: 3px; background: var(--lid); box-shadow: inset 0 0 0 1px var(--swatch-edge); }
+tbody th { text-align: left; padding-left: 10px; font: 600 14px/1.25 var(--font-data); white-space: nowrap; }
+.t-tag { display: block; margin-top: 3px; font: 600 12px/1.2 var(--font-body); color: var(--muted); }
+tr.is-next > * { background: var(--surface); }
+tr.is-next > :first-child { border-radius: 12px 0 0 12px; }
+tr.is-next > :last-child { border-radius: 0 12px 12px 0; }
+.dot { display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--lid); box-shadow: inset 0 0 0 1.5px var(--swatch-edge); vertical-align: middle; }
+.dash { display: inline-block; width: 12px; height: 2px; border-radius: 1px; background: var(--edge); vertical-align: middle; }
+.unk { font: 800 15px/1 var(--font-display); color: var(--muted); }
+
+/* Your bin weeks */
+.weeks { border-top: 1px solid var(--line); }
+.weeks > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; padding-block: 12px; }
+.weeks > summary::-webkit-details-marker { display: none; }
+.sum-text { display: grid; gap: 4px; }
+.sum-status { font: 600 13px/1.3 var(--font-data); color: var(--muted); }
+.chev { width: 26px; height: 26px; flex: none; color: var(--ink); transition: transform 0.2s ease; }
+.weeks[open] .chev { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
+.weeks-body { display: grid; gap: 26px; padding-bottom: 8px; }
+.field { border: 0; margin: 0; padding: 0; min-width: 0; }
+.label { display: block; float: left; width: 100%; padding: 0; margin-bottom: 10px; font: 600 16px/1.3 var(--font-body); }
+.label + * { clear: both; }
+.lid-name { margin-left: 6px; font: 600 12px/1 var(--font-data); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.select { position: relative; }
+.select select {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; min-height: 50px; padding: 0 44px 0 16px;
+  border: 1.5px solid var(--edge); border-radius: 14px;
+  background: var(--surface); color: var(--ink);
+  font: 600 16px/1.2 var(--font-body);
+}
+.select::after {
+  content: ""; position: absolute; right: 18px; top: 50%; width: 9px; height: 9px;
+  border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  transform: translateY(-70%) rotate(45deg); pointer-events: none;
+}
+.chips { position: relative; display: flex; flex-wrap: wrap; gap: 10px; }
+.chips input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.chips label {
+  display: inline-flex; align-items: center; min-height: 48px; padding: 0 16px;
+  border-radius: 999px; border: 1.5px solid var(--edge); background: var(--surface);
+  font: 600 15px/1 var(--font-data); cursor: pointer; user-select: none; -webkit-user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+.chips--words label { font-family: var(--font-body); font-size: 16px; }
+.chips input:checked + label { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+.chips input:focus-visible + label { outline: 3px solid var(--ink); outline-offset: 3px; }
+.hint { margin: 12px 0 0; font-size: 14px; line-height: 1.45; color: var(--muted); max-width: 62ch; }
+.weeks-body > .hint { margin: 0; }
+.saved { margin: 0; font: 600 13px/1.3 var(--font-data); color: var(--muted); }
+.saved:empty { display: none; }
+
+.fine { display: grid; gap: 8px; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
+.fine p { margin: 0; max-width: 62ch; }
+.fine .ver { font: 600 12px/1.3 var(--font-data); letter-spacing: 0.06em; }
+
+@media (max-width: 360px) {
+  .next { padding-inline: 14px; }
+  .bins, .labels { gap: 6px; }
+  .slot-state { padding-inline: 6px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="brand"><span class="mark" aria-hidden="true"><i style="--lid: var(--lid-rubbish)"></i><i style="--lid: var(--lid-recycling)"></i><i style="--lid: var(--lid-fogo)"></i><i style="--lid: var(--lid-glass)"></i></span>Bin night</p>
+    <p class="council">Merri-bek</p>
+  </header>
+
+  <section class="next" aria-labelledby="next-head">
+    <p class="eyebrow" id="next-eyebrow">Next bin night</p>
+    <h1 id="next-head">Bin night</h1>
+    <p class="next-date" id="next-date"></p>
+    <p class="next-by" id="next-by"></p>
+    <div class="lineup" aria-hidden="true">
+      <div class="bins" id="bins"></div>
+      <div class="kerb"></div>
+      <div class="labels" id="labels"></div>
+    </div>
+    <p class="verdict" id="verdict"></p>
+    <div class="notes" id="notes"></div>
+  </section>
+
+  <section class="ahead" aria-labelledby="ahead-head">
+    <h2 id="ahead-head">Next eight weeks</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Collected</th>
+            <th scope="col"><span class="lidmark" style="--lid: var(--lid-rubbish)"></span>Rubbish</th>
+            <th scope="col"><span class="lidmark" style="--lid: var(--lid-recycling)"></span>Recycling</th>
+            <th scope="col"><span class="lidmark" style="--lid: var(--lid-fogo)"></span>Food &amp; garden</th>
+            <th scope="col"><span class="lidmark" style="--lid: var(--lid-glass)"></span>Glass</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="weeks" id="weeks">
+    <summary>
+      <span class="sum-text"><span class="sum-title">Your bin weeks</span><span class="sum-status" id="sum-status"></span></span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="weeks-body">
+      <div class="field">
+        <label class="label" for="f-day">Collection day</label>
+        <div class="select">
+          <select id="f-day">
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+          </select>
+        </div>
+      </div>
+      <fieldset class="field">
+        <legend class="label">Rubbish</legend>
+        <div class="chips chips--words">
+          <input type="radio" name="f-rubbish" id="f-rub-weekly" value="weekly"><label for="f-rub-weekly">Every week</label>
+          <input type="radio" name="f-rubbish" id="f-rub-fortnightly" value="fortnightly"><label for="f-rub-fortnightly">Every second week</label>
+        </div>
+        <p class="hint">Every week is standard. Pick every second week if your street is in the fortnightly trial (parts of Brunswick, Brunswick West and Hadfield).</p>
+      </fieldset>
+      <fieldset class="field">
+        <legend class="label">Next recycling pickup <span class="lid-name">Yellow lid</span></legend>
+        <div class="chips" id="f-rec"></div>
+      </fieldset>
+      <fieldset class="field">
+        <legend class="label">Next glass pickup <span class="lid-name">Purple lid</span></legend>
+        <div class="chips" id="f-glass"></div>
+      </fieldset>
+      <p class="hint">Not sure? Look up your address once on the council's <a href="https://merri-bek.vic.gov.au/bins" target="_blank" rel="noopener">bin collection calendar</a>, then tap the matching dates here. This page works out every week after that.</p>
+      <p class="saved" id="saved" role="status" aria-live="polite"></p>
+    </div>
+  </details>
+
+  <footer class="fine">
+    <p>Worked out from Merri-bek's four-bin cycle: food and garden every week, recycling every second week, glass every four weeks, and rubbish every week (every second week in trial streets).</p>
+    <p>Bins are collected on public holidays except Christmas Day, New Year's Day, Good Friday and Anzac Day. In those weeks this page moves collections from the holiday onwards a day later, as the council did over Christmas 2024.</p>
+    <p>Rubbish moves to every second week across Merri-bek from mid-2027, so this page will need an update then.</p>
+    <p class="ver">Bin night v1.0.0</p>
+  </footer>
+</main>
+
+<script id="bin-logic">
+/* Pure date logic with no page access. Day numbers count days since 1 Jan 1970, so weeks and fortnights are plain arithmetic. */
+var BinLogic = (function () {
+  var DAY = 86400000;
+  function toNum(y, m, d) { return Math.round(Date.UTC(y, m - 1, d) / DAY); }
+  function fromNum(n) { var t = new Date(n * DAY); return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate() }; }
+  function mod(a, b) { return ((a % b) + b) % b; }
+  function weekday(n) { return mod(n + 4, 7); } /* 0 Sunday to 6 Saturday */
+  function pad(x) { return String(x).padStart(2, "0"); }
+  function toISO(n) { var p = fromNum(n); return p.y + "-" + pad(p.m) + "-" + pad(p.d); }
+  function parseISO(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(typeof s === "string" ? s : "");
+    if (!m) return null;
+    var n = toNum(+m[1], +m[2], +m[3]);
+    return toISO(n) === s ? n : null;
+  }
+  function nthWeekday(y, month, wd, nth) {
+    var first = toNum(y, month, 1);
+    return first + mod(wd - weekday(first), 7) + (nth - 1) * 7;
+  }
+  function easterSunday(y) {
+    var a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4;
+    var f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+    var i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    var month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1;
+    return toNum(y, month, day);
+  }
+  var cache = {};
+  /* Victorian public holidays that can land on a weekday collection (Grand Final Friday is set each year, so it isn't here). */
+  function holidays(y) {
+    if (cache[y]) return cache[y];
+    var aus = toNum(y, 1, 26), easter = easterSunday(y);
+    if (weekday(aus) === 6) aus += 2; else if (weekday(aus) === 0) aus += 1;
+    cache[y] = [
+      { n: toNum(y, 1, 1), name: "New Year's Day", short: "New Year's" },
+      { n: aus, name: "Australia Day", short: "Australia Day" },
+      { n: nthWeekday(y, 3, 1, 2), name: "Labour Day", short: "Labour Day" },
+      { n: easter - 2, name: "Good Friday", short: "Good Friday" },
+      { n: easter + 1, name: "Easter Monday", short: "Easter Monday" },
+      { n: toNum(y, 4, 25), name: "Anzac Day", short: "Anzac Day" },
+      { n: nthWeekday(y, 6, 1, 2), name: "King's Birthday", short: "King's Birthday" },
+      { n: nthWeekday(y, 11, 2, 1), name: "Melbourne Cup Day", short: "Cup Day" },
+      { n: toNum(y, 12, 25), name: "Christmas Day", short: "Christmas" },
+      { n: toNum(y, 12, 26), name: "Boxing Day", short: "Boxing Day" }
+    ];
+    return cache[y];
+  }
+  function holidayOn(n) {
+    var list = holidays(fromNum(n).y);
+    for (var i = 0; i < list.length; i++) if (list[i].n === n) return list[i];
+    return null;
+  }
+  /* Council calendar: no collections on Christmas Day, New Year's Day, Good Friday or Anzac Day.
+     Over Christmas 2024 the council moved that week's collections from the holiday on by a day, so the same rule is applied to all four.
+     confirmed marks the two holidays the council has published that rule for. */
+  function shiftFor(nominal) {
+    var monday = nominal - mod(weekday(nominal) - 1, 7), y = fromNum(nominal).y;
+    var stops = [
+      [toNum(y, 12, 25), "Christmas", true],
+      [toNum(y, 1, 1), "New Year's", true],
+      [easterSunday(y) - 2, "Good Friday", false],
+      [toNum(y, 4, 25), "Anzac Day", false]
+    ];
+    for (var i = 0; i < stops.length; i++) {
+      if (stops[i][0] >= monday && stops[i][0] <= nominal) return { actual: nominal + 1, movedFor: stops[i][1], confirmed: stops[i][2] };
+    }
+    return { actual: nominal, movedFor: null, confirmed: true };
+  }
+  function binsFor(nominal, cfg) {
+    var recycling = cfg.recycling == null ? null : mod(nominal - cfg.recycling, 14) === 0;
+    var glass = cfg.glass == null ? null : mod(nominal - cfg.glass, 28) === 0;
+    var rubbish = cfg.rubbish === "fortnightly" ? (recycling == null ? null : !recycling) : true;
+    return { rubbish: rubbish, recycling: recycling, fogo: true, glass: glass };
+  }
+  function firstOnOrAfter(day, n) { return n + mod(day - weekday(n), 7); }
+  function collections(cfg, from, count) {
+    var out = [], n = firstOnOrAfter(cfg.day, from - 7);
+    while (out.length < count) {
+      var s = shiftFor(n);
+      if (s.actual >= from) out.push({ nominal: n, actual: s.actual, movedFor: s.movedFor, confirmed: s.confirmed, holiday: holidayOn(s.actual), bins: binsFor(n, cfg) });
+      n += 7;
+    }
+    return out;
+  }
+  /* Before noon on collection day the bins are still due. From noon the page moves on to the next week. */
+  function upcoming(cfg, today, hour, count) {
+    var list = collections(cfg, today, count + 1), done = null;
+    if (list[0].actual === today && hour >= 12) done = list.shift();
+    return { doneToday: done, list: list.slice(0, count) };
+  }
+  function nextDates(day, from, howMany) {
+    var first = firstOnOrAfter(day, from), out = [];
+    for (var i = 0; i < howMany; i++) out.push(first + i * 7);
+    return out;
+  }
+  return {
+    toNum: toNum, fromNum: fromNum, mod: mod, weekday: weekday, toISO: toISO, parseISO: parseISO,
+    easterSunday: easterSunday, holidayOn: holidayOn, shiftFor: shiftFor, binsFor: binsFor,
+    collections: collections, upcoming: upcoming, nextDates: nextDates
+  };
+})();
+</script>
+
+<script>
+(function () {
+  var L = BinLogic;
+
+  /* Household defaults, so a shared link works with no setup.
+     recycling and glass take any date that bin went out, as "YYYY-MM-DD", on the collection day. */
+  var HOUSEHOLD = { day: 2, rubbish: "fortnightly", recycling: "2026-11-03", glass: "2026-11-10" };
+
+  var KEY = "merribek-bin-night.v2";
+  var ORDER = ["rubbish", "recycling", "fogo", "glass"];
+  var NAME = { rubbish: "Rubbish", recycling: "Recycling", fogo: "Food &amp; garden", glass: "Glass" };
+  var SAY = { rubbish: "rubbish", recycling: "recycling", fogo: "food & garden", glass: "glass" };
+  var STATE = { out: "Out", "in": "Stays in", unknown: "Set week" };
+  var WD = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  var MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  function $(id) { return document.getElementById(id); }
+  function longDate(n) { var p = L.fromNum(n); return WD[L.weekday(n)] + " " + p.d + " " + MON[p.m - 1]; }
+  function shortDate(n) { var p = L.fromNum(n); return WD[L.weekday(n)].slice(0, 3) + " " + p.d + " " + MON[p.m - 1].slice(0, 3); }
+  function listOf(items) { return items.length < 2 ? items.join("") : items.slice(0, -1).join(", ") + " and " + items[items.length - 1]; }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function stateOf(v) { return v === true ? "out" : v === false ? "in" : "unknown"; }
+
+  function anchorFor(value, day) {
+    var n = L.parseISO(value);
+    return n != null && L.weekday(n) === day ? n : null;
+  }
+  function loadCfg() {
+    var cfg = { day: HOUSEHOLD.day, rubbish: HOUSEHOLD.rubbish, recycling: anchorFor(HOUSEHOLD.recycling, HOUSEHOLD.day), glass: anchorFor(HOUSEHOLD.glass, HOUSEHOLD.day) };
+    try {
+      var raw = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (raw && raw.v === 1 && [1, 2, 3, 4, 5].indexOf(raw.day) > -1 && (raw.rubbish === "weekly" || raw.rubbish === "fortnightly")) {
+        cfg = { day: raw.day, rubbish: raw.rubbish, recycling: anchorFor(raw.recycling, raw.day), glass: anchorFor(raw.glass, raw.day) };
+      }
+    } catch (e) { /* storage unavailable: fall back to the household defaults */ }
+    return cfg;
+  }
+  function saveCfg() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({
+        v: 1, day: cfg.day, rubbish: cfg.rubbish,
+        recycling: cfg.recycling == null ? null : L.toISO(cfg.recycling),
+        glass: cfg.glass == null ? null : L.toISO(cfg.glass)
+      }));
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function melbourneNow() {
+    try {
+      var parts = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", hourCycle: "h23" }).formatToParts(new Date());
+      var get = function (t) { for (var i = 0; i < parts.length; i++) if (parts[i].type === t) return Number(parts[i].value); return NaN; };
+      var today = L.toNum(get("year"), get("month"), get("day")), hour = get("hour") % 24;
+      if (!isNaN(today) && !isNaN(hour)) return { today: today, hour: hour };
+    } catch (e) { /* fall through to device time */ }
+    var d = new Date();
+    return { today: L.toNum(d.getFullYear(), d.getMonth() + 1, d.getDate()), hour: d.getHours() };
+  }
+
+  function binSVG(kind, s, i) {
+    var mystery = s === "unknown" ? '<text class="mystery" x="40" y="66" text-anchor="middle">?</text>' : "";
+    return '<svg class="bin bin--' + s + '" viewBox="0 0 80 100" style="--lid: var(--lid-' + kind + '); --i: ' + i + '" aria-hidden="true" focusable="false">' +
+      '<rect class="handle" x="16" y="6" width="48" height="7" rx="3.5"/>' +
+      '<rect class="lid" x="5" y="11" width="70" height="12" rx="4"/>' +
+      '<path class="body" d="M10 25H70L65.5 86.5Q65 90 61.5 90H18.5Q15 90 14.5 86.5Z"/>' +
+      '<rect class="panel" x="26" y="35" width="28" height="40" rx="3"/>' +
+      '<circle class="wheel" cx="22" cy="91" r="6"/><circle class="wheel" cx="58" cy="91" r="6"/>' +
+      mystery + '</svg>';
+  }
+
+  var cfg = loadCfg();
+  var lastToday = null;
+
+  function renderStatus() {
+    var now = melbourneNow(), today = now.today;
+    var up = L.upcoming(cfg, today, now.hour, 8), next = up.list[0];
+    var night = next.actual - 1, collectionDay = WD[L.weekday(next.actual)];
+
+    if (next.actual === today) {
+      $("next-eyebrow").textContent = "Collection day";
+      $("next-head").textContent = "Today";
+      $("next-date").textContent = longDate(today);
+      $("next-by").textContent = "Trucks start from 5:30am. If the bins aren't out yet, get them out now.";
+    } else {
+      $("next-eyebrow").textContent = "Next bin night";
+      $("next-head").textContent = night === today ? "Tonight" : night === today + 1 ? "Tomorrow night" : WD[L.weekday(night)] + " night";
+      $("next-date").textContent = longDate(night);
+      $("next-by").textContent = "On the kerb by 5:30am " + collectionDay + ".";
+    }
+
+    $("bins").innerHTML = ORDER.map(function (k, i) { return binSVG(k, stateOf(next.bins[k]), i); }).join("");
+    $("labels").innerHTML = ORDER.map(function (k) {
+      var s = stateOf(next.bins[k]);
+      return '<div class="slot slot--' + s + '"><span class="slot-name">' + NAME[k] + '</span><span class="slot-state">' + STATE[s] + "</span></div>";
+    }).join("");
+
+    var outs = ORDER.filter(function (k) { return next.bins[k] === true; }).map(function (k) { return SAY[k]; });
+    var ins = ORDER.filter(function (k) { return next.bins[k] === false; }).map(function (k) { return SAY[k]; });
+    var unknown = ORDER.filter(function (k) { return next.bins[k] == null; }).map(function (k) { return SAY[k]; });
+    var verdict = outs.length === 4 ? "All four bins go out." : cap(listOf(outs)) + (outs.length > 1 ? " go out." : " goes out.");
+    if (ins.length) verdict += " " + cap(listOf(ins)) + (ins.length > 1 ? " stay in." : " stays in.");
+    if (unknown.length) verdict += " Set your " + listOf(unknown) + (unknown.length > 1 ? " weeks" : " week") + " below to finish the list.";
+    $("verdict").textContent = verdict;
+
+    var notes = [];
+    if (up.doneToday) notes.push("Today was collection day. Bring the bins back in once they're emptied.");
+    if (next.movedFor) notes.push(next.movedFor + " week: collection moves a day later, to " + longDate(next.actual) + "." + (next.confirmed ? "" : " Check the council calendar that week to be sure."));
+    else if (next.holiday) notes.push(next.holiday.name + " is a public holiday. Bins are still collected.");
+    $("notes").replaceChildren.apply($("notes"), notes.map(function (t) {
+      var p = document.createElement("p"); p.className = "note"; p.textContent = t; return p;
+    }));
+
+    $("rows").innerHTML = up.list.map(function (c, i) {
+      var tag = c.movedFor ? "Moved a day" : c.holiday ? c.holiday.short : "";
+      var cells = ORDER.map(function (k) {
+        var v = c.bins[k];
+        if (v === true) return '<td><span class="dot" style="--lid: var(--lid-' + k + ')" title="Out"></span></td>';
+        if (v === false) return '<td><span class="dash" title="Stays in"></span></td>';
+        return '<td><span class="unk" title="Set this bin\'s week">?</span></td>';
+      }).join("");
+      return "<tr" + (i === 0 ? ' class="is-next"' : "") + '><th scope="row">' + shortDate(c.actual) +
+        (tag ? '<span class="t-tag">' + tag + "</span>" : "") + "</th>" + cells + "</tr>";
+    }).join("");
+
+    $("sum-status").textContent = summary();
+    if (lastToday !== null && lastToday !== today) renderForm();
+    lastToday = today;
+  }
+
+  function summary() {
+    var missing = (cfg.recycling == null ? 1 : 0) + (cfg.glass == null ? 1 : 0);
+    return WD[cfg.day] + " · rubbish " + (cfg.rubbish === "weekly" ? "weekly" : "fortnightly") +
+      (missing ? " · " + missing + " to set" : " · all set");
+  }
+
+  function fillChips(boxId, key, period) {
+    var now = melbourneNow();
+    var from = now.hour >= 12 ? now.today + 1 : now.today;
+    var box = $(boxId);
+    box.replaceChildren();
+    L.nextDates(cfg.day, from, period / 7).forEach(function (n, i) {
+      var input = document.createElement("input");
+      input.type = "radio"; input.name = boxId; input.id = boxId + "-" + i; input.value = String(n);
+      input.checked = cfg[key] != null && L.mod(n - cfg[key], period) === 0;
+      input.addEventListener("change", function () { cfg[key] = n; commit(); });
+      var label = document.createElement("label");
+      label.htmlFor = input.id;
+      label.textContent = shortDate(L.shiftFor(n).actual);
+      box.append(input, label);
+    });
+  }
+
+  function renderForm() {
+    $("f-day").value = String(cfg.day);
+    $("f-rub-" + cfg.rubbish).checked = true;
+    fillChips("f-rec", "recycling", 14);
+    fillChips("f-glass", "glass", 28);
+    $("sum-status").textContent = summary();
+  }
+
+  function commit() {
+    $("saved").textContent = saveCfg() ? "Saved on this phone." : "Couldn't save in this browser. Your weeks reset when you close the page.";
+    renderStatus();
+  }
+
+  $("f-day").addEventListener("change", function (e) {
+    cfg.day = Number(e.target.value);
+    cfg.recycling = null;
+    cfg.glass = null;
+    renderForm();
+    commit();
+  });
+  ["weekly", "fortnightly"].forEach(function (v) {
+    $("f-rub-" + v).addEventListener("change", function () { cfg.rubbish = v; commit(); });
+  });
+
+  renderForm();
+  renderStatus();
+  if (cfg.recycling == null || cfg.glass == null) $("weeks").open = true;
+
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) renderStatus(); });
+  setInterval(renderStatus, 5 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
