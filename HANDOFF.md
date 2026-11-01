@@ -1,6 +1,6 @@
 # Bin night: handoff
 
-v1.0.0 · 1 November 2026
+v1.1.0 · 1 November 2026
 
 ## What it is
 
@@ -29,7 +29,7 @@ All the date logic lives in `<script id="bin-logic">`, which doesn't touch the p
 
 ## Checks
 
-`node test/dates.js` checks the date logic against the council calendar for our address (every Tuesday from 3 November to 29 December 2026), the council's Christmas 2024–25 notice and the holiday rules, and syntax-checks the page script. All passing at v1.0.0.
+`node test/dates.js` checks the date logic against the council calendar for our address (every Tuesday from 3 November to 29 December 2026), the council's Christmas 2024–25 notice and the holiday rules, and syntax-checks the page script. All passing at v1.1.0.
 
 The page was also checked at phone width in light and dark mode.
 
@@ -39,10 +39,16 @@ GitHub Pages, served from `main` at the repo root. The empty `.nojekyll` file st
 
 Everything the page links out to is an absolute URL (Google Fonts, and the council's bins page in the footer), so it works from the `/bin-night/` subpath that a project site is served on.
 
+## Icon
+
+The home-screen icon is the app's own bin with a yellow lid (Jam's pick from the four lid colours) and a b in Overpass ExtraBold, standing on the kerb. The files are in `icons/`: `icon.svg` is the master and the browser-tab icon, `apple-touch-icon.png` (180px) is what iPhones use, `icon-192.png` and `icon-512.png` are for Android and desktop, and `icon-maskable-512.png` has a smaller bin that survives Android's round mask. `favicon-32.png` is a fallback for browsers without SVG favicons.
+
+`manifest.webmanifest` names the app "Bin night" and opens it full screen from the home screen. iPhones keep the icon from when the app was added, so remove it from the home screen and add it again to pick up a new one.
+
 ## Next
 
-1. The folder is now a git repo on `main`, with `.nojekyll` added and nothing committed yet. Jam has the commands to commit, tag v1.0.0, create the GitHub repo, push and turn Pages on. Once it's live, open https://jamien-liston.github.io/bin-night/ on a phone and check the next bin night reads right.
-2. Make it installable like our other apps: manifest, icon and service worker, with the usual cache-version rule.
+1. v1.0.0 is live at https://jamien-liston.github.io/bin-night/. v1.1.0 adds the icon and manifest and is waiting for Jam to commit, tag and push.
+2. Add a service worker so it opens offline, with the usual cache-version rule.
 
 ## Backlog
 
